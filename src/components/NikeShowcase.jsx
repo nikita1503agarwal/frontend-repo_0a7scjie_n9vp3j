@@ -10,6 +10,8 @@ import gsap from 'gsap'
 
 const BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop'
+
 function gradientFromColors(colors = ['#0f172a', '#111827', '#374151']) {
   const [c1, c2, c3] = [
     colors?.[0] || '#0f172a',
@@ -55,10 +57,11 @@ function useProducts() {
         if (mounted) setItems(list)
       } catch (e) {
         console.error(e)
+        // Robust fallback catalog (10 items) with reliable images
         if (mounted) setItems([
           {
             id: 'fallback-1',
-            title: 'Air Zoom Pegasus',
+            title: 'Air Zoom Pegasus 40',
             description: 'Lightweight everyday trainer with a responsive ride.',
             category: 'Running',
             price: 119,
@@ -67,7 +70,7 @@ function useProducts() {
           },
           {
             id: 'fallback-2',
-            title: 'Air Force 1',
+            title: 'Air Force 1 Low',
             description: 'Timeless street classic with premium leather.',
             category: 'Lifestyle',
             price: 99,
@@ -80,8 +83,71 @@ function useProducts() {
             description: 'Big Air for all‑day comfort with bold style.',
             category: 'Lifestyle',
             price: 149,
-            images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop'],
+            images: ['https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop'],
             colors: ['#2563eb', '#1e3a8a', '#0b1220']
+          },
+          {
+            id: 'fallback-4',
+            title: 'Air Jordan 1',
+            description: 'Iconic high‑top heritage with modern comfort.',
+            category: 'Basketball',
+            price: 169,
+            images: ['https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop'],
+            colors: ['#dc2626', '#111827', '#f59e0b']
+          },
+          {
+            id: 'fallback-5',
+            title: 'Blazer Mid 77',
+            description: 'Vintage hoops style with clean lines.',
+            category: 'Lifestyle',
+            price: 99,
+            images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop'],
+            colors: ['#f3f4f6', '#6b7280', '#111827']
+          },
+          {
+            id: 'fallback-6',
+            title: 'Metcon 8',
+            description: 'Stable base and durable upper for training.',
+            category: 'Training',
+            price: 129,
+            images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop'],
+            colors: ['#10b981', '#065f46', '#0b1220']
+          },
+          {
+            id: 'fallback-7',
+            title: 'React Infinity Run',
+            description: 'Plush cushioning to help reduce injury and keep you running.',
+            category: 'Running',
+            price: 159,
+            images: ['https://images.unsplash.com/photo-1543508282-6319a3e2621f?q=80&w=1600&auto=format&fit=crop'],
+            colors: ['#f59e0b', '#7c2d12', '#111827']
+          },
+          {
+            id: 'fallback-8',
+            title: 'Air Max 90',
+            description: 'Classic visible Air with everyday comfort.',
+            category: 'Lifestyle',
+            price: 129,
+            images: ['https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop'],
+            colors: ['#06b6d4', '#0e7490', '#0b1220']
+          },
+          {
+            id: 'fallback-9',
+            title: 'Air Huarache',
+            description: 'Hug your foot with a snug neoprene sleeve.',
+            category: 'Lifestyle',
+            price: 119,
+            images: ['https://images.unsplash.com/photo-1543508282-6319a3e2621f?q=80&w=1600&auto=format&fit=crop'],
+            colors: ['#a78bfa', '#6d28d9', '#0b1220']
+          },
+          {
+            id: 'fallback-10',
+            title: 'ZoomX Vaporfly',
+            description: 'Race‑day speed with responsive carbon plate.',
+            category: 'Running',
+            price: 249,
+            images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop'],
+            colors: ['#22c55e', '#14532d', '#0b1220']
           }
         ])
       } finally {
@@ -108,7 +174,7 @@ export default function NikeShowcase() {
   const slides = useMemo(() => {
     if (!items || items.length === 0) return []
     const arr = [...items]
-    while (arr.length < 6) arr.push(...items)
+    while (arr.length < 8) arr.push(...items)
     return arr.slice(0, 10)
   }, [items])
 
@@ -165,6 +231,20 @@ export default function NikeShowcase() {
     ry.set(dy)
   }
   const handleLeave = () => { rx.set(0); ry.set(0) }
+
+  const handleImageError = (ev) => {
+    const img = ev?.currentTarget
+    if (!img) return
+    if (img.dataset.fallbackApplied === 'true') return
+    img.dataset.fallbackApplied = 'true'
+    img.src = FALLBACK_IMAGE
+  }
+
+  const NikeSwoosh = ({ className = 'w-24 h-8' }) => (
+    <svg viewBox="0 0 100 40" className={className} aria-hidden="true">
+      <path fill="currentColor" d="M98.7 6.2c-5.4 2.3-36.7 16-63.2 27.3C22.7 38.6 15.6 40 10 37.8 5.8 36.1 3.4 33 3.1 29.3c-.5-5.9 4.8-11.6 13.3-14.3 3.6-1.1 7.4-1.7 11.4-1.6-5.3 1.5-9.1 3.8-11.3 6.5-2.8 3.4-2.2 6.5.9 7.9 3.4 1.6 9.8.7 19.5-3 24.7-9.4 50.4-18.7 61.8-23.3z" opacity=".18" />
+    </svg>
+  )
 
   const active = slides[activeIndex]
 
@@ -233,19 +313,30 @@ export default function NikeShowcase() {
                       transition={{ duration: 3, repeat: prefersReduced ? 0 : Infinity, ease: 'easeInOut' }}
                       className="relative rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_60px_140px_-50px_rgba(0,0,0,0.9)] overflow-hidden"
                     >
+                      {/* Glow */}
                       <div className="absolute -inset-10 blur-3xl opacity-60"
                            style={{ background: `radial-gradient(60% 80% at 70% 30%, ${(p.colors?.[1]||'#2563eb')}55 0%, transparent 70%)`, transform: 'translateZ(-40px)' }} />
 
+                      {/* Back box with Nike logo */}
                       <div className="relative p-6 sm:p-10" style={{ transform: 'translateZ(40px)' }}>
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-6 h-12 w-3/4 rounded-full blur-2xl" style={{ background: '#000', opacity: 0.3 }} />
-                        <img
-                          src={p.images?.[0]}
-                          alt={p.title}
-                          className="relative z-10 w-full rounded-2xl border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.65)] select-none will-change-[transform,filter]"
-                          loading="lazy"
-                        />
+                        <div className="relative w-full rounded-2xl border border-white/10 bg-white/5/50 backdrop-blur-sm overflow-hidden">
+                          <div className="absolute inset-0 flex items-center justify-center text-white/15">
+                            <NikeSwoosh className="w-40 h-12" />
+                          </div>
+                          <div className="p-3 sm:p-6">
+                            <div className="absolute left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 h-10 sm:h-12 w-3/4 rounded-full blur-2xl" style={{ background: '#000', opacity: 0.3 }} />
+                            <img
+                              src={p.images?.[0] || FALLBACK_IMAGE}
+                              onError={handleImageError}
+                              alt={p.title}
+                              className="relative z-10 w-full rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.65)] select-none will-change-[transform,filter]"
+                              loading="lazy"
+                            />
+                          </div>
+                        </div>
                       </div>
 
+                      {/* Rotating sheen */}
                       <motion.div
                         className="absolute inset-0"
                         style={{ background: `conic-gradient(from 0deg, transparent, ${(p.colors?.[0]||'#fff')}40, transparent 70%)`, mixBlendMode: 'screen', transform: 'translateZ(-20px)' }}
