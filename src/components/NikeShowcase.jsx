@@ -268,7 +268,7 @@ export default function NikeShowcase() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-white/90 to-white/40 shadow-[0_0_30px_rgba(255,255,255,0.35)]" />
-            <span className="text-white font-black tracking-widest text-sm">NIKE AIR</span>
+            <span className="text-white font-black tracking-widest text-sm">Meer.co shoes</span>
           </div>
           <div className="hidden md:flex items-center gap-6 text-white/80 text-sm">
             <a href="#" className="hover:text-white">New & Featured</a>
@@ -283,7 +283,7 @@ export default function NikeShowcase() {
       {/* Big background text */}
       <div ref={bigTextRef} className="pointer-events-none select-none absolute inset-0 flex items-center justify-center">
         <h2 className="text-[16vmin] sm:text-[18vmin] leading-none font-black tracking-tight text-white/10">
-          NIKE AIR
+          Meer.co shoes
         </h2>
       </div>
 

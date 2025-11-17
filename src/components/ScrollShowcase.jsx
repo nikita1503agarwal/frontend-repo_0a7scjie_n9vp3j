@@ -137,7 +137,7 @@ export default function ScrollShowcase() {
       setItems([
         {
           id: 'fallback-1',
-          title: 'Air Zoom Pegasus',
+          title: 'Pegasus',
           description: 'Lightweight everyday trainer with a responsive ride.',
           category: 'Running',
           price: 119,
@@ -146,7 +146,7 @@ export default function ScrollShowcase() {
         },
         {
           id: 'fallback-2',
-          title: 'Air Force 1',
+          title: 'Force 1',
           description: 'Timeless street classic with premium leather.',
           category: 'Lifestyle',
           price: 99,
@@ -155,11 +155,11 @@ export default function ScrollShowcase() {
         },
         {
           id: 'fallback-3',
-          title: 'Air Max 270',
+          title: 'Max 270',
           description: 'Big Air for all‑day comfort with bold style.',
           category: 'Lifestyle',
           price: 149,
-          images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1600&auto=format&fit=crop'],
+          images: ['https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1600&auto=format&fit=crop'],
           colors: ['#2563eb', '#1e3a8a', '#0b1220']
         }
       ])
@@ -195,7 +195,7 @@ export default function ScrollShowcase() {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Scroll to reveal Nike silhouettes. Each section blends the page with the shoe’s own colors.
+            Scroll to reveal silhouettes. Each section blends the page with the shoe’s own colors.
           </motion.p>
         </div>
       </div>

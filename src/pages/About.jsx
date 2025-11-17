@@ -13,7 +13,7 @@ export default function About() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            About Meer Shoes
+            About Meer.co shoes
           </motion.h1>
           <motion.p
             className="mt-6 text-gray-700 leading-7"
@@ -21,7 +21,7 @@ export default function About() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            We craft a smooth shopping experience with a love for movement. Our focus is Nike footwear—where design, comfort and performance meet. Browse our curated picks and feel the difference underfoot.
+            We craft a smooth shopping experience with a love for movement. Our focus is premium footwear—where design, comfort and performance meet. Browse our curated picks and feel the difference underfoot.
           </motion.p>
         </div>
       </main>

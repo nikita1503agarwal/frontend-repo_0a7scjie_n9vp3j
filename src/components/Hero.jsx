@@ -34,7 +34,7 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
-            Discover the latest Nike collection at Meer Shoes. Smooth, modern and made for motion.
+            Discover the latest from Meer.co shoes. Smooth, modern and made for motion.
           </motion.p>
 
           <motion.div
@@ -47,7 +47,7 @@ export default function Hero() {
               to="/shop"
               className="px-6 py-3 rounded-full bg-blue-600 text-white font-semibold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 transition"
             >
-              Shop Nike
+              Shop now
             </Link>
             <a
               href="#collections"
@@ -66,7 +66,7 @@ export default function Hero() {
         >
           <img
             src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=1600&q=80&auto=format&fit=crop"
-            alt="Nike shoe"
+            alt="Meer.co sneaker"
             className="w-full rounded-3xl shadow-2xl"
           />
           <motion.div
@@ -75,7 +75,7 @@ export default function Hero() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <p className="text-sm text-gray-600">Featured: Nike Air Max</p>
+            <p className="text-sm text-gray-600">Featured: Air Max</p>
           </motion.div>
         </motion.div>
       </div>
