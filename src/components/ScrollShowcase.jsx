@@ -1,25 +1,48 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Spline from '@splinetool/react-spline'
 
 const BASE = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
 
-// Utility to build a pleasant gradient based on provided colors
 function gradientFromColors(colors = ['#111827', '#2563eb']) {
   const [c1, c2] = colors.length >= 2 ? colors : [colors[0] || '#111827', '#2563eb']
   return `radial-gradient(60% 80% at 70% 30%, ${c1} 0%, ${c2} 45%, #0b1220 100%)`
+}
+
+function isWebGLAvailable() {
+  try {
+    const canvas = document.createElement('canvas')
+    return !!(
+      window && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+    )
+  } catch (e) {
+    return false
+  }
 }
 
 export default function ScrollShowcase() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [enableSpline, setEnableSpline] = useState(false)
+  const [splineFailed, setSplineFailed] = useState(false)
+
   const ref = useRef(null)
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] })
 
   const rotate = useTransform(scrollYProgress, [0, 1], [0, 90])
   const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15])
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.4, 0.8, 0.4])
+  const opacity = useTransform(scrollYProgress, [0, 0.2, 1], [0.3, 0.6, 0.3])
+
+  useEffect(() => {
+    // Defer enabling Spline until after first paint and only if WebGL is available
+    const t = setTimeout(() => {
+      if (typeof window !== 'undefined' && isWebGLAvailable()) {
+        setEnableSpline(true)
+      }
+    }, 300)
+    return () => clearTimeout(t)
+  }, [])
 
   const load = async () => {
     setLoading(true)
@@ -29,7 +52,6 @@ export default function ScrollShowcase() {
       const data = await res.json()
       const list = Array.isArray(data.items) ? data.items : []
       if (list.length === 0) {
-        // try seeding once
         await fetch(`${BASE}/api/products/seed`, { method: 'POST' })
         const r2 = await fetch(`${BASE}/api/products`)
         const d2 = await r2.json()
@@ -38,7 +60,29 @@ export default function ScrollShowcase() {
         setItems(list)
       }
     } catch (e) {
-      setError('Unable to load products')
+      // Keep UI visible even if API fails
+      setError('')
+      setItems([
+        // graceful fallback content
+        {
+          id: 'fallback-1',
+          title: 'Air Zoom Pegasus',
+          description: 'Lightweight everyday trainer with a responsive ride.',
+          category: 'Running',
+          price: 119,
+          images: ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1400&auto=format&fit=crop'],
+          colors: ['#1f2937', '#2563eb', '#10b981']
+        },
+        {
+          id: 'fallback-2',
+          title: 'Air Force 1',
+          description: 'Timeless street classic with premium leather.',
+          category: 'Lifestyle',
+          price: 99,
+          images: ['https://images.unsplash.com/photo-1543508282-6319a3e2621f?q=80&w=1400&auto=format&fit=crop'],
+          colors: ['#111827', '#6b7280', '#e5e7eb']
+        }
+      ])
       console.error(e)
     } finally {
       setLoading(false)
@@ -54,14 +98,23 @@ export default function ScrollShowcase() {
 
   return (
     <section ref={ref} className="relative w-full min-h-[200vh]">
-      {/* Spline Background */}
-      <motion.div className="pointer-events-none absolute inset-0 -z-10 opacity-80" style={{ rotate, scale, opacity }}>
-        {/* Replace with your own Spline scene for branding */}
-        <Spline scene="https://prod.spline.design/6lNw7U3f7uQfXc8S/scene.splinecode" />
-      </motion.div>
+      {/* Background Layer: Always-on gradient to prevent blank flashes */}
+      <div className="pointer-events-none absolute inset-0 -z-20" style={{ background: gradients[0] || gradientFromColors() }} />
+
+      {/* Optional Spline Background with safeguards */}
+      {enableSpline && !splineFailed && (
+        <motion.div className="pointer-events-none absolute inset-0 -z-10" style={{ rotate, scale, opacity }}>
+          <Suspense fallback={null}>
+            <Spline
+              scene="https://prod.spline.design/6lNw7U3f7uQfXc8S/scene.splinecode"
+              onLoad={() => {/* loaded */}}
+              onError={() => setSplineFailed(true)}
+            />
+          </Suspense>
+        </motion.div>
+      )}
 
       <div className="sticky top-0 min-h-screen">
-        <div className="absolute inset-0 -z-10 transition-colors" style={{ background: gradients[0] || gradientFromColors() }} />
         <div className="h-screen flex items-center justify-center">
           <div className="text-center px-6">
             <motion.h2
@@ -93,10 +146,6 @@ export default function ScrollShowcase() {
             <div className="h-screen flex items-center justify-center">
               <p className="text-white/90">Loading showcase...</p>
             </div>
-          ) : error ? (
-            <div className="h-screen flex items-center justify-center">
-              <p className="text-white/90">{error}</p>
-            </div>
           ) : (
             items.map((p, i) => (
               <section key={p.id || i} className="relative h-screen snap-start">
@@ -113,6 +162,7 @@ export default function ScrollShowcase() {
                         src={p.images?.[0]}
                         alt={p.title}
                         className="w-full max-w-xl rounded-3xl shadow-2xl border border-white/10"
+                        onError={(e) => { e.currentTarget.style.display = 'none' }}
                       />
                       <motion.div
                         className="absolute -bottom-6 -left-6 bg-white/90 backdrop-blur rounded-2xl shadow-xl p-4"
@@ -150,6 +200,13 @@ export default function ScrollShowcase() {
           )}
         </div>
       </div>
+
+      {/* Fallback toggle for users who still see a blank screen */}
+      {(splineFailed || !enableSpline) && (
+        <div className="pointer-events-none absolute bottom-4 right-4 text-xs text-white/70">
+          3D disabled to keep the page stable
+        </div>
+      )}
     </section>
   )
 }
