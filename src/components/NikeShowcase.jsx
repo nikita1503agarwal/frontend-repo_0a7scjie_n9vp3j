@@ -37,6 +37,19 @@ function shade(color, percent) {
   }
 }
 
+function alpha(hex, a = 1) {
+  try {
+    const c = hex.startsWith('#') ? hex.slice(1) : hex
+    const num = parseInt(c, 16)
+    const r = (num >> 16) & 255
+    const g = (num >> 8) & 255
+    const b = num & 255
+    return `rgba(${r}, ${g}, ${b}, ${Math.max(0, Math.min(1, a))})`
+  } catch {
+    return hex
+  }
+}
+
 function useProducts() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -295,109 +308,121 @@ export default function NikeShowcase() {
           coverflowEffect={{ rotate: 8, stretch: 0, depth: 120, modifier: 0.6, slideShadows: false }}
           className="[--swiper-pagination-color:theme(colors.white)]"
         >
-          {slides.map((p, i) => (
-            <SwiperSlide key={(p.id || i) + '-slide'}>
-              <div className="grid lg:grid-cols-2 gap-10 items-center min-h-[70vh]">
-                {/* Visual */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="relative"
-                >
-                  <div ref={containerRef} className="relative [perspective:1200px]" onMouseMove={handleMove} onMouseLeave={handleLeave}>
-                    <motion.div
-                      style={{ transformStyle: 'preserve-3d', rotateX, rotateY, willChange: 'transform' }}
-                      whileHover={{ scale: 1.05, rotateZ: 0.15 }}
-                      animate={prefersReduced ? {} : { y: [0, -8, 0] }}
-                      transition={{ duration: 3, repeat: prefersReduced ? 0 : Infinity, ease: 'easeInOut' }}
-                      className="relative rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_60px_140px_-50px_rgba(0,0,0,0.9)] overflow-hidden"
-                    >
-                      {/* Glow */}
-                      <div className="absolute -inset-10 blur-3xl opacity-60"
-                           style={{ background: `radial-gradient(60% 80% at 70% 30%, ${(p.colors?.[1]||'#2563eb')}55 0%, transparent 70%)`, transform: 'translateZ(-40px)' }} />
+          {slides.map((p, i) => {
+            const isActive = i === activeIndex
+            const cols = p.colors || ['#0f172a', '#111827', '#334155']
+            const base = cols[isActive ? (colorIndex % cols.length) : 0]
+            const darker = shade(base, -35)
+            const lighter = shade(base, 35)
+            const panelGradient = `radial-gradient(120% 120% at 70% 20%, ${alpha(lighter, 0.35)} 0%, transparent 55%), linear-gradient(135deg, ${alpha(darker, 0.55)} 0%, ${alpha(base, 0.4)} 60%, ${alpha(lighter, 0.28)} 100%)`
 
-                      {/* Back box with Nike logo */}
-                      <div className="relative p-6 sm:p-10" style={{ transform: 'translateZ(40px)' }}>
-                        <div className="relative w-full rounded-2xl border border-white/10 bg-white/5/50 backdrop-blur-sm overflow-hidden">
-                          <div className="absolute inset-0 flex items-center justify-center text-white/15">
-                            <NikeSwoosh className="w-40 h-12" />
-                          </div>
-                          <div className="p-3 sm:p-6">
-                            <div className="absolute left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 h-10 sm:h-12 w-3/4 rounded-full blur-2xl" style={{ background: '#000', opacity: 0.3 }} />
-                            <img
-                              src={p.images?.[0] || FALLBACK_IMAGE}
-                              onError={handleImageError}
-                              alt={p.title}
-                              className="relative z-10 w-full rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.65)] select-none will-change-[transform,filter]"
-                              loading="lazy"
-                            />
+            return (
+              <SwiperSlide key={(p.id || i) + '-slide'}>
+                <div className="grid lg:grid-cols-2 gap-10 items-center min-h-[70vh]">
+                  {/* Visual */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="relative"
+                  >
+                    <div ref={containerRef} className="relative [perspective:1200px]" onMouseMove={handleMove} onMouseLeave={handleLeave}>
+                      <motion.div
+                        style={{ transformStyle: 'preserve-3d', rotateX, rotateY, willChange: 'transform' }}
+                        whileHover={{ scale: 1.05, rotateZ: 0.15 }}
+                        animate={prefersReduced ? {} : { y: [0, -8, 0] }}
+                        transition={{ duration: 3, repeat: prefersReduced ? 0 : Infinity, ease: 'easeInOut' }}
+                        className="relative rounded-[28px] border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_60px_140px_-50px_rgba(0,0,0,0.9)] overflow-hidden"
+                      >
+                        {/* Glow */}
+                        <div className="absolute -inset-10 blur-3xl opacity-60"
+                             style={{ background: `radial-gradient(60% 80% at 70% 30%, ${(p.colors?.[1]||'#2563eb')}55 0%, transparent 70%)`, transform: 'translateZ(-40px)' }} />
+
+                        {/* Back box with Nike logo and gradient */}
+                        <div className="relative p-6 sm:p-10" style={{ transform: 'translateZ(40px)' }}>
+                          <div
+                            className="relative w-full rounded-2xl border backdrop-blur-sm overflow-hidden transition-[background] duration-700"
+                            style={{ background: panelGradient, borderColor: 'rgba(255,255,255,0.12)' }}
+                          >
+                            <div className="absolute inset-0 flex items-center justify-center text-white/20">
+                              <NikeSwoosh className="w-40 h-12" />
+                            </div>
+                            <div className="p-3 sm:p-6">
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-4 sm:bottom-6 h-10 sm:h-12 w-3/4 rounded-full blur-2xl" style={{ background: '#000', opacity: 0.3 }} />
+                              <img
+                                src={p.images?.[0] || FALLBACK_IMAGE}
+                                onError={handleImageError}
+                                alt={p.title}
+                                className="relative z-10 w-full rounded-xl sm:rounded-2xl border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.65)] select-none will-change-[transform,filter]"
+                                loading="lazy"
+                              />
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Rotating sheen */}
-                      <motion.div
-                        className="absolute inset-0"
-                        style={{ background: `conic-gradient(from 0deg, transparent, ${(p.colors?.[0]||'#fff')}40, transparent 70%)`, mixBlendMode: 'screen', transform: 'translateZ(-20px)' }}
-                        animate={prefersReduced ? {} : { rotate: [0, 180, 360] }}
-                        transition={{ duration: 16, ease: 'linear', repeat: prefersReduced ? 0 : Infinity }}
-                      />
-                    </motion.div>
-                  </div>
-                </motion.div>
-
-                {/* Details */}
-                <div className="text-white">
-                  <motion.h3
-                    key={(p.id || i) + '-title'}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                    className="text-4xl sm:text-5xl font-black tracking-tight"
-                  >
-                    {p.title}
-                  </motion.h3>
-                  <div className="mt-2 text-white/70 text-sm">{p.category}</div>
-                  <p className="mt-4 text-white/80 max-w-prose">{p.description}</p>
-
-                  {/* Color selector */}
-                  <div className="mt-6">
-                    <div className="text-white/70 text-sm mb-2">Color</div>
-                    <div className="flex items-center gap-3">
-                      {(p.colors || ['#fff']).slice(0, 6).map((c, idx) => (
-                        <button
-                          key={`${p.id||i}-c-${idx}`}
-                          onClick={() => setColorIndex(idx)}
-                          className={`w-9 h-9 rounded-full border transition-transform duration-200 ease-out active:scale-95 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${idx === colorIndex ? 'ring-2 ring-white ring-offset-2 ring-offset-white/10 border-white' : 'border-white/30'}`}
-                          style={{ backgroundColor: c }}
-                          aria-label={`color ${idx+1}`}
+                        {/* Rotating sheen */}
+                        <motion.div
+                          className="absolute inset-0"
+                          style={{ background: `conic-gradient(from 0deg, transparent, ${(p.colors?.[0]||'#fff')}40, transparent 70%)`, mixBlendMode: 'screen', transform: 'translateZ(-20px)' }}
+                          animate={prefersReduced ? {} : { rotate: [0, 180, 360] }}
+                          transition={{ duration: 16, ease: 'linear', repeat: prefersReduced ? 0 : Infinity }}
                         />
-                      ))}
+                      </motion.div>
+                    </div>
+                  </motion.div>
+
+                  {/* Details */}
+                  <div className="text-white">
+                    <motion.h3
+                      key={(p.id || i) + '-title'}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.1 }}
+                      className="text-4xl sm:text-5xl font-black tracking-tight"
+                    >
+                      {p.title}
+                    </motion.h3>
+                    <div className="mt-2 text-white/70 text-sm">{p.category}</div>
+                    <p className="mt-4 text-white/80 max-w-prose">{p.description}</p>
+
+                    {/* Color selector */}
+                    <div className="mt-6">
+                      <div className="text-white/70 text-sm mb-2">Color</div>
+                      <div className="flex items-center gap-3">
+                        {(p.colors || ['#fff']).slice(0, 6).map((c, idx) => (
+                          <button
+                            key={`${p.id||i}-c-${idx}`}
+                            onClick={() => setColorIndex(idx)}
+                            className={`w-9 h-9 rounded-full border transition-transform duration-200 ease-out active:scale-95 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${idx === colorIndex && i===activeIndex ? 'ring-2 ring-white ring-offset-2 ring-offset-white/10 border-white' : 'border-white/30'}`}
+                            style={{ backgroundColor: c }}
+                            aria-label={`color ${idx+1}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Size selector */}
+                    <div className="mt-6">
+                      <div className="text-white/70 text-sm mb-2">Size</div>
+                      <select className="bg-white/10 text-white border border-white/20 rounded-xl px-4 py-2">
+                        {[6,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,12].map((s) => (
+                          <option key={s} value={s} className="bg-slate-900">{s} US</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Price + CTA */}
+                    <div className="mt-8 flex items-center gap-4">
+                      <span className="text-2xl font-extrabold bg-white text-gray-900 px-4 py-2 rounded-full shadow">${active?.price ?? p.price}</span>
+                      <button className="px-6 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white font-semibold backdrop-blur transition-colors">
+                        Add to Cart
+                      </button>
                     </div>
                   </div>
-
-                  {/* Size selector */}
-                  <div className="mt-6">
-                    <div className="text-white/70 text-sm mb-2">Size</div>
-                    <select className="bg-white/10 text-white border border-white/20 rounded-xl px-4 py-2">
-                      {[6,6.5,7,7.5,8,8.5,9,9.5,10,10.5,11,12].map((s) => (
-                        <option key={s} value={s} className="bg-slate-900">{s} US</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Price + CTA */}
-                  <div className="mt-8 flex items-center gap-4">
-                    <span className="text-2xl font-extrabold bg-white text-gray-900 px-4 py-2 rounded-full shadow">${active?.price ?? p.price}</span>
-                    <button className="px-6 py-3 rounded-2xl bg-white/15 hover:bg-white/25 border border-white/25 text-white font-semibold backdrop-blur transition-colors">
-                      Add to Cart
-                    </button>
-                  </div>
                 </div>
-              </div>
-            </SwiperSlide>
-          ))}
+              </SwiperSlide>
+            )
+          })}
         </Swiper>
       </div>
     </section>
